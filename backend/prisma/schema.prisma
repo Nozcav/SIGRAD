@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum FormStatus {
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+enum QuestionType {
+  SHORT_TEXT
+  LONG_TEXT
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  DROPDOWN
+  DATE
+}
+
+enum ResponseStatus {
+  PENDING
+  REVIEWED
+  NEEDS_CORRECTION
+}
+
+model User {
+  id           String   @id @default(uuid())
+  fullName     String
+  email        String   @unique
+  documentId   String   @unique
+  passwordHash String
+  role         Role     @default(STUDENT)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  formsOwned    Form[]         @relation("TeacherForms")
+  responses     Response[]
+  comments      Comment[]
+  notifications Notification[]
+}
+
+model Form {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  code        String     @unique
+  status      FormStatus @default(ACTIVE)
+  teacherId   String
+  teacher     User       @relation("TeacherForms", fields: [teacherId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  questions Question[]
+  responses Response[]
+}
+
+model Question {
+  id       String       @id @default(uuid())
+  formId   String
+  form     Form         @relation(fields: [formId], references: [id], onDelete: Cascade)
+  text     String
+  type     QuestionType
+  required Boolean      @default(true)
+  order    Int
+
+  options QuestionOption[]
+  answers Answer[]
+}
+
+model QuestionOption {
+  id         String   @id @default(uuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text       String
+  order      Int
+}
+
+model Response {
+  id          String         @id @default(uuid())
+  formId      String
+  form        Form           @relation(fields: [formId], references: [id])
+  studentId   String
+  student     User           @relation(fields: [studentId], references: [id])
+  status      ResponseStatus @default(PENDING)
+  submittedAt DateTime       @default(now())
+
+  answers       Answer[]
+  comments      Comment[]
+  notifications Notification[]
+
+  @@unique([formId, studentId])
+}
+
+model Answer {
+  id         String   @id @default(uuid())
+  responseId String
+  response   Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id])
+  value      String
+}
+
+model Comment {
+  id         String   @id @default(uuid())
+  responseId String
+  response   Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  teacherId  String
+  teacher    User     @relation(fields: [teacherId], references: [id])
+  text       String
+  createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  responseId String?
+  response   Response? @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  message    String
+  read       Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+}
