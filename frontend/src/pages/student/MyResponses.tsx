@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { InboxIcon } from "../../components/icons/Icons";
 import { Alert } from "../../components/ui/Alert";
 import { Badge } from "../../components/ui/Badge";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { SkeletonList } from "../../components/ui/SkeletonList";
 import { getApiErrorMessage } from "../../lib/api";
 import { getMyResponses } from "../../services/responses.service";
 import { ResponseSummary } from "../../types/response";
@@ -47,13 +50,11 @@ const MyResponses = () => {
       {error && <Alert message={error} />}
 
       {isLoading ? (
-        <p className="text-sm text-neutral-500">Cargando...</p>
+        <SkeletonList rows={4} />
       ) : responses.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-500">
-          Aun no has enviado respuestas a ningun formulario.
-        </div>
+        <EmptyState icon={InboxIcon} message="Aun no has enviado respuestas a ningun formulario." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl">
           <table className="min-w-full divide-y divide-neutral-200 text-sm">
             <thead className="bg-neutral-50">
               <tr>
@@ -67,7 +68,7 @@ const MyResponses = () => {
             </thead>
             <tbody className="divide-y divide-neutral-100">
               {responses.map((response) => (
-                <tr key={response.id} className="hover:bg-neutral-50">
+                <tr key={response.id} className="border-l-2 border-transparent transition-all duration-200 hover:border-l-brand-500 hover:bg-brand-50/50">
                   <td className="px-4 py-3 font-medium text-neutral-900">{response.form.title}</td>
                   <td className="px-4 py-3 font-mono text-neutral-500">{response.form.code}</td>
                   <td className="px-4 py-3 text-neutral-500">{formatDate(response.submittedAt)}</td>

@@ -4,29 +4,28 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { getApiErrorMessage } from "../lib/api";
 import { changePassword, updateProfile } from "../services/profile.service";
+import { celebrate } from "../utils/celebrate";
 import { ROLE_LABELS, ROLE_VARIANTS } from "../utils/role";
 
 const formatDate = (isoDate: string) =>
   new Date(isoDate).toLocaleDateString("es-CO", { year: "numeric", month: "short", day: "numeric" });
 
-const SUCCESS_MESSAGE_TIMEOUT_MS = 3000;
-
 const Profile = () => {
   const { user, refreshUser } = useAuth();
+  const { showToast } = useToast();
 
   const [fullName, setFullName] = useState(user?.fullName ?? "");
   const [documentId, setDocumentId] = useState(user?.documentId ?? "");
   const [profileError, setProfileError] = useState<string | null>(null);
-  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
 
   useEffect(() => {
@@ -36,32 +35,16 @@ const Profile = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (!profileSuccess) {
-      return;
-    }
-    const timeout = setTimeout(() => setProfileSuccess(null), SUCCESS_MESSAGE_TIMEOUT_MS);
-    return () => clearTimeout(timeout);
-  }, [profileSuccess]);
-
-  useEffect(() => {
-    if (!passwordSuccess) {
-      return;
-    }
-    const timeout = setTimeout(() => setPasswordSuccess(null), SUCCESS_MESSAGE_TIMEOUT_MS);
-    return () => clearTimeout(timeout);
-  }, [passwordSuccess]);
-
   const handleProfileSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setProfileError(null);
-    setProfileSuccess(null);
     setIsSavingProfile(true);
 
     try {
       await updateProfile({ fullName, documentId });
       await refreshUser();
-      setProfileSuccess("Tu informacion personal se actualizo correctamente.");
+      celebrate();
+      showToast("Tu informacion personal se actualizo correctamente", "success");
     } catch (err) {
       setProfileError(getApiErrorMessage(err));
     } finally {
@@ -72,7 +55,6 @@ const Profile = () => {
   const handlePasswordSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPasswordError(null);
-    setPasswordSuccess(null);
 
     if (newPassword !== confirmNewPassword) {
       setPasswordError("Las contrasenas nuevas no coinciden");
@@ -83,10 +65,11 @@ const Profile = () => {
 
     try {
       await changePassword({ currentPassword, newPassword });
-      setPasswordSuccess("Tu contrasena se actualizo correctamente.");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmNewPassword("");
+      celebrate();
+      showToast("Tu contrasena se actualizo correctamente", "success");
     } catch (err) {
       setPasswordError(getApiErrorMessage(err));
     } finally {
@@ -104,7 +87,7 @@ const Profile = () => {
       </div>
 
       {user && (
-        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-6 animate-slideUp">
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl p-6 animate-slideUp">
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-lg font-bold text-white">
             {user.fullName
               .trim()
@@ -124,11 +107,10 @@ const Profile = () => {
         </div>
       )}
 
-      <div className="animate-slideUp space-y-5 rounded-2xl border border-neutral-200 bg-white p-6">
+      <div className="animate-slideUp space-y-5 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl p-6">
         <h2 className="text-lg font-semibold text-neutral-900">Informacion personal</h2>
 
         {profileError && <Alert message={profileError} />}
-        {profileSuccess && <Alert message={profileSuccess} variant="success" />}
 
         <form className="space-y-5" onSubmit={handleProfileSubmit} noValidate>
           <Input
@@ -158,11 +140,10 @@ const Profile = () => {
         </form>
       </div>
 
-      <div className="animate-slideUp space-y-5 rounded-2xl border border-neutral-200 bg-white p-6">
+      <div className="animate-slideUp space-y-5 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl p-6">
         <h2 className="text-lg font-semibold text-neutral-900">Cambiar contrasena</h2>
 
         {passwordError && <Alert message={passwordError} />}
-        {passwordSuccess && <Alert message={passwordSuccess} variant="success" />}
 
         <form className="space-y-5" onSubmit={handlePasswordSubmit} noValidate>
           <Input

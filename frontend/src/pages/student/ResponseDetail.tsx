@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Alert } from "../../components/ui/Alert";
 import { Badge } from "../../components/ui/Badge";
+import { SkeletonBlock } from "../../components/ui/SkeletonBlock";
 import { getApiErrorMessage } from "../../lib/api";
 import { getResponseDetail } from "../../services/responses.service";
 import { ResponseDetail as ResponseDetailType } from "../../types/response";
@@ -56,7 +57,13 @@ const ResponseDetail = () => {
   }, [id]);
 
   if (isLoading) {
-    return <p className="text-sm text-neutral-500">Cargando...</p>;
+    return (
+      <div className="mx-auto max-w-2xl space-y-6">
+        <SkeletonBlock lines={2} />
+        <SkeletonBlock lines={4} />
+        <SkeletonBlock lines={2} />
+      </div>
+    );
   }
 
   if (error || !response) {
@@ -105,7 +112,7 @@ const ResponseDetail = () => {
         </div>
       </div>
 
-      <div className="space-y-5 rounded-2xl border border-neutral-200 bg-white p-6">
+      <div className="space-y-5 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl p-6">
         <h2 className="text-lg font-semibold text-neutral-900">Tus respuestas</h2>
         {response.form.questions.map((question) => {
           const answer = answersByQuestionId.get(question.id);
@@ -127,7 +134,7 @@ const ResponseDetail = () => {
         })}
       </div>
 
-      <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6">
+      <div className="space-y-4 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl p-6">
         <h2 className="text-lg font-semibold text-neutral-900">Retroalimentacion del docente</h2>
         {response.comments.length === 0 ? (
           <p className="text-sm text-neutral-500">

@@ -1,6 +1,10 @@
 import { Role, User } from "@prisma/client";
 import { prisma } from "../../config/db";
+import { env } from "../../config/env";
 import { AppError } from "../../utils/AppError";
+import { generateTemporaryPassword } from "../../utils/generateTemporaryPassword";
+import { hashPassword } from "../../utils/hash";
+import { CreateUserInput } from "./admin.schemas";
 
 const sanitizeUser = (user: User) => ({
   id: user.id,
@@ -9,6 +13,7 @@ const sanitizeUser = (user: User) => ({
   documentId: user.documentId,
   role: user.role,
   active: user.active,
+  mustChangePassword: user.mustChangePassword,
   createdAt: user.createdAt,
 });
 
@@ -73,4 +78,47 @@ export const updateUserStatus = async (adminId: string, userId: string, active: 
   });
 
   return sanitizeUser(updated);
+};
+
+// No existe registro publico: el administrador es quien da de alta cada
+// cuenta (replica el modelo institucional donde la universidad entrega las
+// credenciales). Si el admin no especifica una contrasena, el sistema genera
+// una temporal segura. En ambos casos se devuelve una unica vez en texto
+// plano (nunca se guarda asi) y el usuario debe reemplazarla en su primer
+// inicio de sesion (mustChangePassword).
+export const createUser = async (input: CreateUserInput) => {
+  const normalizedEmail = input.email.toLowerCase();
+
+  if (env.EMAIL_DOMAIN && !normalizedEmail.endsWith(`@${env.EMAIL_DOMAIN.toLowerCase()}`)) {
+    throw new AppError(
+      `El correo debe pertenecer al dominio institucional (@${env.EMAIL_DOMAIN})`,
+      400
+    );
+  }
+
+  const existing = await prisma.user.findFirst({
+    where: {
+      OR: [{ email: normalizedEmail }, { documentId: input.documentId }],
+    },
+  });
+
+  if (existing) {
+    throw new AppError("Ya existe un usuario registrado con ese correo o documento", 409);
+  }
+
+  const temporaryPassword = input.password ?? generateTemporaryPassword();
+  const passwordHash = await hashPassword(temporaryPassword);
+
+  const user = await prisma.user.create({
+    data: {
+      fullName: input.fullName,
+      email: normalizedEmail,
+      documentId: input.documentId,
+      role: input.role,
+      passwordHash,
+      mustChangePassword: true,
+    },
+  });
+
+  return { user: sanitizeUser(user), temporaryPassword };
 };

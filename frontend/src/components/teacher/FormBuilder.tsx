@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { DragEvent, FormEvent, useState } from "react";
 import { QuestionInput } from "../../types/form";
 import { QUESTION_TYPES_WITH_OPTIONS } from "../../utils/questionTypes";
 import { Alert } from "../ui/Alert";
@@ -54,6 +54,7 @@ export const FormBuilder = ({
   const [titleError, setTitleError] = useState<string | null>(null);
   const [questionsError, setQuestionsError] = useState<string | null>(null);
   const [questionErrors, setQuestionErrors] = useState<Record<string, string>>({});
+  const [draggedLocalId, setDraggedLocalId] = useState<string | null>(null);
 
   const handleQuestionChange = (updated: BuilderQuestion) => {
     setQuestions((previous) =>
@@ -75,6 +76,37 @@ export const FormBuilder = ({
 
   const handleRemoveQuestion = (localId: string) => {
     setQuestions((previous) => previous.filter((question) => question.localId !== localId));
+  };
+
+  const handleHandleDragStart = (localId: string) => (event: DragEvent<HTMLSpanElement>) => {
+    setDraggedLocalId(localId);
+    event.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleHandleDragEnd = () => {
+    setDraggedLocalId(null);
+  };
+
+  const handleCardDragOver = (targetLocalId: string) => (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+
+    if (!draggedLocalId || draggedLocalId === targetLocalId) {
+      return;
+    }
+
+    setQuestions((previous) => {
+      const draggedIndex = previous.findIndex((question) => question.localId === draggedLocalId);
+      const targetIndex = previous.findIndex((question) => question.localId === targetLocalId);
+
+      if (draggedIndex === -1 || targetIndex === -1) {
+        return previous;
+      }
+
+      const reordered = [...previous];
+      const [draggedQuestion] = reordered.splice(draggedIndex, 1);
+      reordered.splice(targetIndex, 0, draggedQuestion);
+      return reordered;
+    });
   };
 
   const validate = (): boolean => {
@@ -154,7 +186,7 @@ export const FormBuilder = ({
     <form className="space-y-6" onSubmit={handleSubmit} noValidate>
       {serverError && <Alert message={serverError} />}
 
-      <div className="space-y-5 rounded-2xl border border-neutral-200 bg-white p-6">
+      <div className="space-y-5 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl p-6">
         <Input
           label="Titulo del formulario"
           name="title"
@@ -168,7 +200,7 @@ export const FormBuilder = ({
           </label>
           <textarea
             id="description"
-            className="min-h-[90px] resize-y rounded-lg border border-neutral-300 px-3 py-2.5 text-sm text-neutral-900 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-emerald-500"
+            className="min-h-[90px] resize-y rounded-lg border-2 border-neutral-200 hover:border-neutral-300 px-3 py-2.5 text-sm text-neutral-900 outline-none transition-all duration-200 focus:scale-[1.01] focus:border-transparent focus:ring-4 focus:ring-emerald-500/30"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
           />
@@ -222,6 +254,11 @@ export const FormBuilder = ({
           </div>
         ) : (
           <div className="space-y-4">
+            {questions.length > 1 && (
+              <p className="text-xs text-neutral-500">
+                Arrastra el icono ⠿ para cambiar el orden de las preguntas.
+              </p>
+            )}
             {questions.map((question, index) => (
               <QuestionBuilderItem
                 key={question.localId}
@@ -230,6 +267,10 @@ export const FormBuilder = ({
                 error={questionErrors[question.localId]}
                 onChange={handleQuestionChange}
                 onRemove={() => handleRemoveQuestion(question.localId)}
+                isDragging={draggedLocalId === question.localId}
+                onHandleDragStart={handleHandleDragStart(question.localId)}
+                onHandleDragEnd={handleHandleDragEnd}
+                onCardDragOver={handleCardDragOver(question.localId)}
               />
             ))}
           </div>

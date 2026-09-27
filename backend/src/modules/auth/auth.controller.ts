@@ -1,22 +1,12 @@
 import { CookieOptions, RequestHandler } from "express";
 import { env } from "../../config/env";
 import { cookieMaxAgeMs } from "../../utils/jwt";
-import { changeUserPassword, loginUser, registerUser, updateUserProfile } from "./auth.service";
+import { changeUserPassword, loginUser, updateUserProfile } from "./auth.service";
 
 const baseCookieOptions: CookieOptions = {
   httpOnly: true,
   secure: env.NODE_ENV === "production",
   sameSite: "lax",
-};
-
-export const register: RequestHandler = async (req, res, next) => {
-  try {
-    const { user, token } = await registerUser(req.body);
-    res.cookie("token", token, { ...baseCookieOptions, maxAge: cookieMaxAgeMs });
-    res.status(201).json({ user });
-  } catch (error) {
-    next(error);
-  }
 };
 
 export const login: RequestHandler = async (req, res, next) => {

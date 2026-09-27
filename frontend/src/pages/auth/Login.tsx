@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
@@ -28,7 +28,8 @@ const Login = () => {
     try {
       await login({ email, password });
       const state = location.state as LocationState | null;
-      navigate(state?.from?.pathname ?? "/dashboard", { replace: true });
+      const from = state?.from?.pathname;
+      navigate(from && from !== "/unauthorized" ? from : "/dashboard", { replace: true });
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -37,8 +38,8 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-12">
-      <div className="w-full max-w-md animate-slideUp space-y-8 rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+    <div className="relative flex min-h-screen items-center justify-center px-4 py-12">
+      <div className="relative w-full max-w-md animate-slideUp space-y-8 rounded-2xl border border-neutral-200 bg-white/85 p-8 shadow-xl backdrop-blur-md">
         <div className="space-y-3 text-center">
           <img src="/fet-logo-full.png" alt="Logo FET" className="mx-auto h-24 w-auto" />
           <h1 className="text-2xl font-semibold text-neutral-900">Ingresar a SIGRAD</h1>
@@ -74,10 +75,9 @@ const Login = () => {
         </form>
 
         <p className="text-center text-sm text-neutral-500">
-          No tienes una cuenta?{" "}
-          <Link to="/register" className="font-medium text-brand-700 hover:text-brand-800">
-            Registrate
-          </Link>
+          Tu cuenta es creada por el administrador de SIGRAD, igual que las credenciales
+          institucionales de tu universidad. Si aun no tienes acceso, contacta a la coordinacion
+          de la FET.
         </p>
       </div>
     </div>

@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { CreateUserModal } from "../../components/admin/CreateUserModal";
+import { UsersIcon } from "../../components/icons/Icons";
 import { Alert } from "../../components/ui/Alert";
 import { Badge } from "../../components/ui/Badge";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { SkeletonList } from "../../components/ui/SkeletonList";
 import { useAuth } from "../../context/AuthContext";
 import { getApiErrorMessage } from "../../lib/api";
 import { listUsers, updateUserRole, updateUserStatus } from "../../services/admin.service";
@@ -29,6 +33,7 @@ const AdminDashboard = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -94,16 +99,36 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUserCreated = (createdUser: AuthUser) => {
+    setUsers((previous) => [createdUser, ...previous]);
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-neutral-900">Gestion de usuarios</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Busca usuarios, asigna el rol de docente y activa o desactiva cuentas.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-neutral-900">Gestion de usuarios</h1>
+          <p className="mt-1 text-sm text-neutral-500">
+            Busca usuarios, asigna el rol de docente y activa o desactiva cuentas.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsCreateModalOpen(true)}
+          className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-brand-600 via-emerald-500 to-brand-600 bg-[length:200%_auto] bg-[position:0%_50%] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:bg-[position:100%_50%] hover:animate-neonPulse active:scale-95 shadow-[0_0_10px_1px_rgba(16,185,129,0.35)] ring-1 ring-inset ring-emerald-300/30 hover:ring-2 hover:ring-emerald-300/80"
+        >
+          + Crear usuario
+        </button>
       </div>
 
       {error && <Alert message={error} />}
+
+      {isCreateModalOpen && (
+        <CreateUserModal
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreated={handleUserCreated}
+        />
+      )}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <input
@@ -111,12 +136,12 @@ const AdminDashboard = () => {
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
           placeholder="Buscar por nombre, correo o documento"
-          className="flex-1 rounded-lg border border-neutral-300 px-3 py-2.5 text-sm text-neutral-900 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-emerald-500"
+          className="flex-1 rounded-lg border-2 border-neutral-200 hover:border-neutral-300 px-3 py-2.5 text-sm text-neutral-900 outline-none transition-all duration-200 focus:scale-[1.01] focus:border-transparent focus:ring-4 focus:ring-emerald-500/30"
         />
         <select
           value={roleFilter}
           onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}
-          className="rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-emerald-500"
+          className="rounded-lg border-2 border-neutral-200 hover:border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition-all duration-200 focus:scale-[1.01] focus:border-transparent focus:ring-4 focus:ring-emerald-500/30"
         >
           {ROLE_FILTER_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -127,13 +152,11 @@ const AdminDashboard = () => {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-neutral-500">Cargando...</p>
+        <SkeletonList rows={5} />
       ) : filteredUsers.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-500">
-          No se encontraron usuarios con estos filtros.
-        </div>
+        <EmptyState icon={UsersIcon} message="No se encontraron usuarios con estos filtros." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl">
           <table className="min-w-full divide-y divide-neutral-200 text-sm">
             <thead className="bg-neutral-50">
               <tr>
@@ -152,7 +175,7 @@ const AdminDashboard = () => {
                 const isUpdating = updatingId === user.id;
 
                 return (
-                  <tr key={user.id} className="hover:bg-neutral-50">
+                  <tr key={user.id} className="border-l-2 border-transparent transition-all duration-200 hover:border-l-brand-500 hover:bg-brand-50/50">
                     <td className="px-4 py-3 font-medium text-neutral-900">{user.fullName}</td>
                     <td className="px-4 py-3 text-neutral-500">{user.email}</td>
                     <td className="px-4 py-3 text-neutral-500">{user.documentId}</td>
@@ -174,7 +197,7 @@ const AdminDashboard = () => {
                             onClick={() => handleToggleRole(user)}
                             disabled={isSelf || isUpdating}
                             title={isSelf ? "No puedes modificar tu propio rol" : undefined}
-                            className="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="rounded-lg border-2 border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 hover:shadow-md disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             {user.role === "STUDENT" ? "Promover a docente" : "Volver a estudiante"}
                           </button>
@@ -184,10 +207,10 @@ const AdminDashboard = () => {
                           onClick={() => handleToggleStatus(user)}
                           disabled={isSelf || isUpdating}
                           title={isSelf ? "No puedes desactivar tu propia cuenta" : undefined}
-                          className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                          className={`rounded-lg border-2 px-3 py-1.5 text-xs font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60 ${
                             user.active
-                              ? "border-red-200 text-red-600 hover:bg-red-50"
-                              : "border-green-200 text-green-700 hover:bg-green-50"
+                              ? "border-red-200 text-red-600 hover:border-red-400 hover:bg-red-500 hover:text-white hover:shadow-red-500/30"
+                              : "border-emerald-200 text-emerald-700 hover:border-emerald-400 hover:bg-emerald-500 hover:text-white hover:shadow-emerald-500/30"
                           }`}
                         >
                           {user.active ? "Desactivar" : "Activar"}

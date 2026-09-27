@@ -1,3 +1,5 @@
+import { DragEvent } from "react";
+import { GripIcon } from "../icons/Icons";
 import { QUESTION_TYPE_OPTIONS, QUESTION_TYPES_WITH_OPTIONS } from "../../utils/questionTypes";
 import { Input } from "../ui/Input";
 import { BuilderQuestion } from "./formBuilderTypes";
@@ -8,6 +10,10 @@ interface QuestionBuilderItemProps {
   error?: string;
   onChange: (question: BuilderQuestion) => void;
   onRemove: () => void;
+  isDragging: boolean;
+  onHandleDragStart: (event: DragEvent<HTMLSpanElement>) => void;
+  onHandleDragEnd: () => void;
+  onCardDragOver: (event: DragEvent<HTMLDivElement>) => void;
 }
 
 let optionIdCounter = 0;
@@ -19,6 +25,10 @@ export const QuestionBuilderItem = ({
   error,
   onChange,
   onRemove,
+  isDragging,
+  onHandleDragStart,
+  onHandleDragEnd,
+  onCardDragOver,
 }: QuestionBuilderItemProps) => {
   const needsOptions = QUESTION_TYPES_WITH_OPTIONS.includes(question.type);
 
@@ -55,9 +65,27 @@ export const QuestionBuilderItem = ({
   };
 
   return (
-    <div className="space-y-4 rounded-xl border border-neutral-200 p-4">
+    <div
+      onDragOver={onCardDragOver}
+      className={`space-y-4 rounded-xl border p-4 transition-all duration-200 ${
+        isDragging
+          ? "border-brand-400 bg-brand-50/60 opacity-50 shadow-lg"
+          : "border-neutral-200 bg-transparent"
+      }`}
+    >
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-neutral-500">Pregunta {index + 1}</span>
+        <span className="flex items-center gap-2 text-sm font-medium text-neutral-500">
+          <span
+            draggable
+            onDragStart={onHandleDragStart}
+            onDragEnd={onHandleDragEnd}
+            title="Arrastra para reordenar"
+            className="cursor-grab rounded p-0.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-brand-600 active:cursor-grabbing"
+          >
+            <GripIcon className="h-4 w-4" />
+          </span>
+          Pregunta {index + 1}
+        </span>
         <button
           type="button"
           onClick={onRemove}
@@ -78,7 +106,7 @@ export const QuestionBuilderItem = ({
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-neutral-700">Tipo de pregunta</label>
           <select
-            className="rounded-lg border border-neutral-300 px-3 py-2.5 text-sm text-neutral-900 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-emerald-500"
+            className="rounded-lg border-2 border-neutral-200 hover:border-neutral-300 px-3 py-2.5 text-sm text-neutral-900 outline-none transition-all duration-200 focus:scale-[1.01] focus:border-transparent focus:ring-4 focus:ring-emerald-500/30"
             value={question.type}
             onChange={(event) => handleTypeChange(event.target.value as BuilderQuestion["type"])}
           >
@@ -111,7 +139,7 @@ export const QuestionBuilderItem = ({
                 value={option.text}
                 onChange={(event) => handleOptionTextChange(option.localId, event.target.value)}
                 placeholder={`Opcion ${optionIndex + 1}`}
-                className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-emerald-500"
+                className="flex-1 rounded-lg border-2 border-neutral-200 hover:border-neutral-300 px-3 py-2 text-sm text-neutral-900 outline-none transition-all duration-200 focus:scale-[1.01] focus:border-transparent focus:ring-4 focus:ring-emerald-500/30"
               />
               <button
                 type="button"

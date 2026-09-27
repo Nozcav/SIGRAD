@@ -1,5 +1,5 @@
 import { api } from "../lib/api";
-import { AuthUser, Role } from "../types/auth";
+import { AuthUser, CreateUserPayload, CreateUserResult, Role } from "../types/auth";
 
 export const listUsers = async (): Promise<AuthUser[]> => {
   const { data } = await api.get<{ users: AuthUser[] }>("/admin/users");
@@ -16,4 +16,9 @@ export const updateUserStatus = async (userId: string, active: boolean): Promise
     active,
   });
   return data.user;
+};
+
+export const createUser = async (payload: CreateUserPayload): Promise<CreateUserResult> => {
+  const { data } = await api.post<CreateUserResult>("/admin/users", payload);
+  return data;
 };

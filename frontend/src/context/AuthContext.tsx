@@ -7,13 +7,12 @@ import {
   useState,
 } from "react";
 import { api } from "../lib/api";
-import { AuthUser, LoginPayload, RegisterPayload } from "../types/auth";
+import { AuthUser, LoginPayload } from "../types/auth";
 
 interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
   login: (payload: LoginPayload) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -46,18 +45,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(data.user);
   }, []);
 
-  const register = useCallback(async (payload: RegisterPayload) => {
-    const { data } = await api.post<{ user: AuthUser }>("/auth/register", payload);
-    setUser(data.user);
-  }, []);
-
   const logout = useCallback(async () => {
     await api.post("/auth/logout");
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

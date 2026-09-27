@@ -7,5 +7,34 @@
 }
 
 body {
-  @apply min-h-screen bg-neutral-50 text-neutral-900 antialiased;
+  @apply min-h-screen text-neutral-900 antialiased;
+  background-color: #f4f7f5;
+  background-image:
+    radial-gradient(circle at 12% 10%, rgba(43, 115, 73, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 88% 15%, rgba(16, 185, 129, 0.10) 0%, transparent 40%),
+    radial-gradient(circle at 50% 100%, rgba(43, 115, 73, 0.08) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background-color: rgba(43, 115, 73, 0.25);
+}
+
+/* Scrollbar con acento de marca, visible sobre todo en tablas con overflow-x-auto */
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(43, 115, 73, 0.35);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(43, 115, 73, 0.55);
 }

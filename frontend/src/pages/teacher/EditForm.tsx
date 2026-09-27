@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { FormBuilder, FormBuilderSubmitPayload } from "../../components/teacher/FormBuilder";
 import { toBuilderQuestions } from "../../components/teacher/formBuilderTypes";
 import { Alert } from "../../components/ui/Alert";
+import { SkeletonBlock } from "../../components/ui/SkeletonBlock";
 import { getApiErrorMessage } from "../../lib/api";
 import { getFormForTeacher, updateForm } from "../../services/forms.service";
 import { FormDetailForTeacher } from "../../types/form";
@@ -56,7 +57,13 @@ const EditForm = () => {
   };
 
   if (isLoading) {
-    return <p className="text-sm text-neutral-500">Cargando...</p>;
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <SkeletonBlock lines={2} />
+        <SkeletonBlock lines={3} />
+        <SkeletonBlock lines={3} />
+      </div>
+    );
   }
 
   if (loadError || !form) {

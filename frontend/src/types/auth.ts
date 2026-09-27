@@ -7,14 +7,8 @@ export interface AuthUser {
   documentId: string;
   role: Role;
   active: boolean;
+  mustChangePassword: boolean;
   createdAt: string;
-}
-
-export interface RegisterPayload {
-  fullName: string;
-  email: string;
-  documentId: string;
-  password: string;
 }
 
 export interface LoginPayload {
@@ -30,4 +24,17 @@ export interface UpdateProfilePayload {
 export interface ChangePasswordPayload {
   currentPassword: string;
   newPassword: string;
+}
+
+export interface CreateUserPayload {
+  fullName: string;
+  email: string;
+  documentId: string;
+  role: Extract<Role, "STUDENT" | "TEACHER">;
+  password?: string;
+}
+
+export interface CreateUserResult {
+  user: AuthUser;
+  temporaryPassword: string;
 }

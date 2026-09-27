@@ -1,12 +1,15 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useToast } from "../../context/ToastContext";
 import { Alert } from "../../components/ui/Alert";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
+import { SkeletonBlock } from "../../components/ui/SkeletonBlock";
 import { getApiErrorMessage } from "../../lib/api";
 import { addComment } from "../../services/comments.service";
 import { getResponseDetail, updateResponseStatus } from "../../services/responses.service";
 import { Comment, ResponseDetail as ResponseDetailType, ResponseStatus } from "../../types/response";
+import { celebrate } from "../../utils/celebrate";
 import { RESPONSE_STATUS_LABELS, RESPONSE_STATUS_VARIANTS } from "../../utils/responseStatus";
 
 const formatDateTime = (isoDate: string) =>
@@ -34,6 +37,7 @@ const STATUS_OPTIONS: ResponseStatus[] = ["PENDING", "REVIEWED", "NEEDS_CORRECTI
 
 const TeacherResponseDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { showToast } = useToast();
 
   const [response, setResponse] = useState<ResponseDetailType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,6 +86,8 @@ const TeacherResponseDetail = () => {
         previous ? { ...previous, comments: [...previous.comments, comment] } : previous
       );
       setCommentText("");
+      celebrate();
+      showToast("Comentario enviado al estudiante", "success");
     } catch (err) {
       setCommentError(getApiErrorMessage(err));
     } finally {
@@ -100,6 +106,7 @@ const TeacherResponseDetail = () => {
     try {
       await updateResponseStatus(response.id, nextStatus);
       setResponse((previous) => (previous ? { ...previous, status: nextStatus } : previous));
+      showToast(`Estado actualizado a "${RESPONSE_STATUS_LABELS[nextStatus]}"`, "success");
     } catch (err) {
       setStatusError(getApiErrorMessage(err));
     } finally {
@@ -108,7 +115,14 @@ const TeacherResponseDetail = () => {
   };
 
   if (isLoading) {
-    return <p className="text-sm text-neutral-500">Cargando...</p>;
+    return (
+      <div className="mx-auto max-w-2xl space-y-6">
+        <SkeletonBlock lines={2} />
+        <SkeletonBlock lines={1} />
+        <SkeletonBlock lines={4} />
+        <SkeletonBlock lines={2} />
+      </div>
+    );
   }
 
   if (loadError || !response) {
@@ -160,7 +174,7 @@ const TeacherResponseDetail = () => {
         </div>
       </div>
 
-      <div className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-6">
+      <div className="space-y-3 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl p-6">
         <h2 className="text-lg font-semibold text-neutral-900">Estado de revision</h2>
         {statusError && <Alert message={statusError} />}
         <div className="flex flex-wrap gap-2">
@@ -170,10 +184,10 @@ const TeacherResponseDetail = () => {
               type="button"
               onClick={() => handleStatusChange(status)}
               disabled={isChangingStatus || response.status === status}
-              className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+              className={`rounded-lg border-2 px-3 py-2 text-sm font-semibold transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 ${
                 response.status === status
-                  ? "border-brand-600 bg-brand-600 text-white"
-                  : "border-neutral-300 text-neutral-700 hover:bg-neutral-100"
+                  ? "scale-105 border-brand-600 bg-gradient-to-r from-brand-600 to-emerald-500 text-white shadow-lg shadow-brand-500/30"
+                  : "border-neutral-200 text-neutral-700 hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 hover:shadow-md"
               }`}
             >
               {RESPONSE_STATUS_LABELS[status]}
@@ -182,7 +196,7 @@ const TeacherResponseDetail = () => {
         </div>
       </div>
 
-      <div className="space-y-5 rounded-2xl border border-neutral-200 bg-white p-6">
+      <div className="space-y-5 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl p-6">
         <h2 className="text-lg font-semibold text-neutral-900">Respuestas del estudiante</h2>
         {response.form.questions.map((question) => {
           const answer = answersByQuestionId.get(question.id);
@@ -204,7 +218,7 @@ const TeacherResponseDetail = () => {
         })}
       </div>
 
-      <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6">
+      <div className="space-y-4 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl p-6">
         <h2 className="text-lg font-semibold text-neutral-900">Retroalimentacion</h2>
 
         {response.comments.length === 0 ? (
@@ -232,7 +246,7 @@ const TeacherResponseDetail = () => {
             </label>
             <textarea
               id="comment"
-              className="min-h-[100px] resize-y rounded-lg border border-neutral-300 px-3 py-2.5 text-sm text-neutral-900 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-emerald-500"
+              className="min-h-[100px] resize-y rounded-lg border-2 border-neutral-200 hover:border-neutral-300 px-3 py-2.5 text-sm text-neutral-900 outline-none transition-all duration-200 focus:scale-[1.01] focus:border-transparent focus:ring-4 focus:ring-emerald-500/30"
               value={commentText}
               onChange={(event) => setCommentText(event.target.value)}
             />

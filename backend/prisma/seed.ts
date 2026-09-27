@@ -27,6 +27,7 @@ async function main() {
       documentId,
       passwordHash,
       role: "ADMIN",
+      mustChangePassword: true,
     },
   });
 

@@ -4,7 +4,7 @@ import StudentLayout from "./components/layout/StudentLayout";
 import TeacherLayout from "./components/layout/TeacherLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
+import SetNewPassword from "./pages/auth/SetNewPassword";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
@@ -20,16 +20,29 @@ import TeacherResponseDetail from "./pages/teacher/TeacherResponseDetail";
 import TeacherResponses from "./pages/teacher/TeacherResponses";
 import Unauthorized from "./pages/Unauthorized";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { useAuth } from "./context/AuthContext";
+
+// Muestra el layout del rol actual; permite compartir rutas como /profile.
+const RoleLayout = () => {
+  const { user } = useAuth();
+
+  if (user?.role === "ADMIN") return <AdminLayout />;
+  if (user?.role === "TEACHER") return <TeacherLayout />;
+  return <StudentLayout />;
+};
 
 const App = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/change-password" element={<SetNewPassword />} />
+        <Route element={<RoleLayout />}>
+          <Route path="/profile" element={<Profile />} />
+        </Route>
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["STUDENT"]} />}>
@@ -39,7 +52,6 @@ const App = () => {
           <Route path="/student/responses" element={<MyResponses />} />
           <Route path="/student/responses/:id" element={<ResponseDetail />} />
           <Route path="/student/pending" element={<PendingComments />} />
-          <Route path="/profile" element={<Profile />} />
         </Route>
       </Route>
 
@@ -50,14 +62,12 @@ const App = () => {
           <Route path="/teacher/forms/:id/edit" element={<EditForm />} />
           <Route path="/teacher/forms/:formId/responses" element={<TeacherResponses />} />
           <Route path="/teacher/responses/:id" element={<TeacherResponseDetail />} />
-          <Route path="/profile" element={<Profile />} />
         </Route>
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/profile" element={<Profile />} />
         </Route>
       </Route>
 

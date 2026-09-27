@@ -1,27 +1,80 @@
-import { useEffect, useState } from "react";
+import { ComponentType, SVGProps, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { CheckCircleIcon, ChatIcon, DocumentIcon } from "../../components/icons/Icons";
+import { AnimatedNumber } from "../../components/ui/AnimatedNumber";
 import { Alert } from "../../components/ui/Alert";
 import { Badge } from "../../components/ui/Badge";
 import { CopyButton } from "../../components/ui/CopyButton";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { SkeletonCard } from "../../components/ui/SkeletonCard";
+import { SkeletonList } from "../../components/ui/SkeletonList";
 import { getApiErrorMessage } from "../../lib/api";
 import { archiveForm, listMyForms, updateFormStatus } from "../../services/forms.service";
 import { FormListItem, FormStatus } from "../../types/form";
 import { FORM_STATUS_LABELS, FORM_STATUS_VARIANTS } from "../../utils/formStatus";
+import { handleTiltLeave, handleTiltMove } from "../../utils/tilt";
 
 const formatDate = (isoDate: string) =>
   new Date(isoDate).toLocaleDateString("es-CO", { year: "numeric", month: "short", day: "numeric" });
 
+type CardAccent = "brand" | "emerald" | "amber";
+
+const ACCENT_STYLES: Record<CardAccent, { bar: string; glow: string; text: string; iconBg: string }> = {
+  brand: {
+    bar: "from-brand-500 to-brand-700",
+    glow: "hover:shadow-brand-500/25",
+    text: "text-brand-700",
+    iconBg: "bg-brand-100",
+  },
+  emerald: {
+    bar: "from-emerald-400 to-emerald-600",
+    glow: "hover:shadow-emerald-500/25",
+    text: "text-emerald-600",
+    iconBg: "bg-emerald-100",
+  },
+  amber: {
+    bar: "from-amber-400 to-amber-600",
+    glow: "hover:shadow-amber-500/25",
+    text: "text-amber-600",
+    iconBg: "bg-amber-100",
+  },
+};
+
 interface SummaryCardProps {
   label: string;
   value: number;
+  accent?: CardAccent;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
-const SummaryCard = ({ label, value }: SummaryCardProps) => (
-  <div className="rounded-2xl border border-neutral-200 bg-white p-6 transition-shadow hover:shadow-md">
-    <p className="text-sm font-medium text-neutral-500">{label}</p>
-    <p className="mt-2 text-3xl font-semibold text-neutral-900">{value}</p>
-  </div>
-);
+const SummaryCard = ({ label, value, accent = "brand", icon: Icon }: SummaryCardProps) => {
+  const style = ACCENT_STYLES[accent];
+
+  return (
+    <div
+      className={`group overflow-hidden rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl transition-shadow duration-300 hover:shadow-xl will-change-transform ${style.glow}`}
+      onMouseMove={handleTiltMove}
+      onMouseLeave={handleTiltLeave}
+    >
+      <div className={`h-1.5 w-full bg-gradient-to-r ${style.bar}`} />
+      <div className="flex items-start justify-between gap-3 p-6">
+        <div>
+          <p className="text-sm font-medium text-neutral-500">{label}</p>
+          <p
+            className={`mt-2 text-4xl font-bold transition-transform duration-300 group-hover:scale-110 ${style.text}`}
+          >
+            <AnimatedNumber value={value} />
+          </p>
+        </div>
+        <span
+          className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${style.iconBg} transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110`}
+        >
+          <Icon className={`h-5 w-5 ${style.text}`} />
+        </span>
+      </div>
+    </div>
+  );
+};
 
 const TeacherDashboard = () => {
   const [forms, setForms] = useState<FormListItem[]>([]);
@@ -100,7 +153,7 @@ const TeacherDashboard = () => {
         </div>
         <Link
           to="/teacher/forms/new"
-          className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+          className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-brand-600 via-emerald-500 to-brand-600 bg-[length:200%_auto] bg-[position:0%_50%] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:bg-[position:100%_50%] hover:animate-neonPulse active:scale-95 shadow-[0_0_10px_1px_rgba(16,185,129,0.35)] ring-1 ring-inset ring-emerald-300/30 hover:ring-2 hover:ring-emerald-300/80"
         >
           + Nuevo formulario
         </Link>
@@ -109,25 +162,47 @@ const TeacherDashboard = () => {
       {error && <Alert message={error} />}
 
       {isLoading ? (
-        <p className="text-sm text-neutral-500">Cargando...</p>
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+          <SkeletonList rows={3} />
+        </div>
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <SummaryCard label="Formularios creados" value={totalForms} />
-            <SummaryCard label="Formularios activos" value={activeForms} />
-            <SummaryCard label="Respuestas recibidas" value={totalResponses} />
+            <SummaryCard
+              label="Formularios creados"
+              value={totalForms}
+              accent="brand"
+              icon={DocumentIcon}
+            />
+            <SummaryCard
+              label="Formularios activos"
+              value={activeForms}
+              accent="emerald"
+              icon={CheckCircleIcon}
+            />
+            <SummaryCard
+              label="Respuestas recibidas"
+              value={totalResponses}
+              accent="amber"
+              icon={ChatIcon}
+            />
           </div>
 
           {forms.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-500">
-              Aun no has creado ningun formulario.
-            </div>
+            <EmptyState icon={DocumentIcon} message="Aun no has creado ningun formulario." />
           ) : (
             <div className="space-y-4">
               {forms.map((form) => (
                 <div
                   key={form.id}
-                  className="rounded-2xl border border-neutral-200 bg-white p-5 transition-shadow hover:shadow-md"
+                  className="rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl p-5 transition-shadow duration-300 will-change-transform hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/10"
+                  onMouseMove={handleTiltMove}
+                  onMouseLeave={handleTiltLeave}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
@@ -151,13 +226,13 @@ const TeacherDashboard = () => {
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
                         to={`/teacher/forms/${form.id}/responses`}
-                        className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
+                        className="rounded-lg border-2 border-neutral-200 px-3 py-2 text-sm font-semibold text-neutral-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 hover:shadow-md"
                       >
                         Ver respuestas
                       </Link>
                       <Link
                         to={`/teacher/forms/${form.id}/edit`}
-                        className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
+                        className="rounded-lg border-2 border-neutral-200 px-3 py-2 text-sm font-semibold text-neutral-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 hover:shadow-md"
                       >
                         Editar
                       </Link>
@@ -166,7 +241,7 @@ const TeacherDashboard = () => {
                           type="button"
                           onClick={() => handleToggleStatus(form)}
                           disabled={updatingId === form.id}
-                          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-lg border-2 border-neutral-200 px-3 py-2 text-sm font-semibold text-neutral-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 hover:shadow-md disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {form.status === "ACTIVE" ? "Cerrar" : "Activar"}
                         </button>
@@ -176,7 +251,7 @@ const TeacherDashboard = () => {
                           type="button"
                           onClick={() => handleArchive(form)}
                           disabled={updatingId === form.id}
-                          className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-lg border-2 border-red-200 px-3 py-2 text-sm font-semibold text-red-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-red-400 hover:bg-red-500 hover:text-white hover:shadow-lg hover:shadow-red-500/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Archivar
                         </button>

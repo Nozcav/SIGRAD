@@ -1,13 +1,19 @@
-import { useEffect, useState } from "react";
+import { ComponentType, SVGProps, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FormCodeEntry } from "../../components/student/FormCodeEntry";
+import { AnimatedNumber } from "../../components/ui/AnimatedNumber";
 import { Alert } from "../../components/ui/Alert";
+import { SkeletonBlock } from "../../components/ui/SkeletonBlock";
+import { SkeletonCard } from "../../components/ui/SkeletonCard";
+import { SkeletonList } from "../../components/ui/SkeletonList";
+import { BellIcon, ChatIcon, ClockIcon, DocumentIcon } from "../../components/icons/Icons";
 import { useAuth } from "../../context/AuthContext";
 import { getApiErrorMessage } from "../../lib/api";
 import { getNotifications, markNotificationAsRead } from "../../services/notifications.service";
 import { getMyResponses } from "../../services/responses.service";
 import { AppNotification } from "../../types/notification";
 import { ResponseSummary } from "../../types/response";
+import { handleTiltLeave, handleTiltMove } from "../../utils/tilt";
 
 const formatDateTime = (isoDate: string) =>
   new Date(isoDate).toLocaleString("es-CO", {
@@ -18,36 +24,100 @@ const formatDateTime = (isoDate: string) =>
     minute: "2-digit",
   });
 
+type CardAccent = "brand" | "emerald" | "amber" | "red";
+
+const ACCENT_STYLES: Record<CardAccent, { bar: string; glow: string; text: string; iconBg: string }> = {
+  brand: {
+    bar: "from-brand-500 to-brand-700",
+    glow: "hover:shadow-brand-500/25",
+    text: "text-brand-700",
+    iconBg: "bg-brand-100",
+  },
+  emerald: {
+    bar: "from-emerald-400 to-emerald-600",
+    glow: "hover:shadow-emerald-500/25",
+    text: "text-emerald-600",
+    iconBg: "bg-emerald-100",
+  },
+  amber: {
+    bar: "from-amber-400 to-amber-600",
+    glow: "hover:shadow-amber-500/25",
+    text: "text-amber-600",
+    iconBg: "bg-amber-100",
+  },
+  red: {
+    bar: "from-red-400 to-red-600",
+    glow: "hover:shadow-red-500/25",
+    text: "text-red-600",
+    iconBg: "bg-red-100",
+  },
+};
+
 interface SummaryCardProps {
   label: string;
   value: number;
   to?: string;
   pulse?: boolean;
+  accent?: CardAccent;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
-const SummaryCard = ({ label, value, to, pulse = false }: SummaryCardProps) => {
+const SummaryCard = ({
+  label,
+  value,
+  to,
+  pulse = false,
+  accent = "brand",
+  icon: Icon,
+}: SummaryCardProps) => {
+  const style = ACCENT_STYLES[accent];
+
   const content = (
     <>
-      <div className="flex items-center gap-2">
-        <p className="text-sm font-medium text-neutral-500">{label}</p>
-        {pulse && value > 0 && <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />}
+      <div className={`h-1.5 w-full bg-gradient-to-r ${style.bar}`} />
+      <div className="flex items-start justify-between gap-3 p-6">
+        <div>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium text-neutral-500">{label}</p>
+            {pulse && value > 0 && (
+              <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
+            )}
+          </div>
+          <p
+            className={`mt-2 text-4xl font-bold transition-transform duration-300 group-hover:scale-110 ${style.text}`}
+          >
+            <AnimatedNumber value={value} />
+          </p>
+        </div>
+        <span
+          className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${style.iconBg} transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110`}
+        >
+          <Icon className={`h-5 w-5 ${style.text}`} />
+        </span>
       </div>
-      <p className="mt-2 text-3xl font-semibold text-neutral-900">{value}</p>
     </>
   );
 
-  const className =
-    "block rounded-2xl border border-neutral-200 bg-white p-6 transition-shadow hover:shadow-md";
+  const className = `group block overflow-hidden rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl transition-shadow duration-300 hover:shadow-xl will-change-transform ${style.glow}`;
 
   if (to) {
     return (
-      <Link to={to} className={className}>
+      <Link
+        to={to}
+        className={className}
+        onMouseMove={handleTiltMove}
+        onMouseLeave={handleTiltLeave}
+      >
         {content}
       </Link>
     );
   }
 
-  return <div className={className}>{content}</div>;
+  return (
+    <div className={className} onMouseMove={handleTiltMove} onMouseLeave={handleTiltLeave}>
+      {content}
+    </div>
+  );
 };
 
 const StudentDashboard = () => {
@@ -110,24 +180,50 @@ const StudentDashboard = () => {
       {error && <Alert message={error} />}
 
       {isLoading ? (
-        <p className="text-sm text-neutral-500">Cargando...</p>
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+          <SkeletonBlock lines={2} />
+          <SkeletonList rows={3} />
+        </div>
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <SummaryCard label="Formularios respondidos" value={responses.length} />
-            <SummaryCard label="Comentarios recibidos" value={commentCount} />
-            <SummaryCard label="Notificaciones no leidas" value={unreadCount} />
+            <SummaryCard
+              label="Formularios respondidos"
+              value={responses.length}
+              accent="brand"
+              icon={DocumentIcon}
+            />
+            <SummaryCard
+              label="Comentarios recibidos"
+              value={commentCount}
+              accent="emerald"
+              icon={ChatIcon}
+            />
+            <SummaryCard
+              label="Notificaciones no leidas"
+              value={unreadCount}
+              accent="amber"
+              icon={BellIcon}
+            />
             <SummaryCard
               label="Comentarios pendientes"
               value={pendingCount}
               to="/student/pending"
               pulse
+              accent="red"
+              icon={ClockIcon}
             />
           </div>
 
           <FormCodeEntry />
 
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6">
+          <div className="rounded-2xl border border-white/60 bg-white/70 p-6 backdrop-blur-xl">
             <h2 className="text-lg font-semibold text-neutral-900">Notificaciones</h2>
 
             {notifications.length === 0 ? (
@@ -137,10 +233,10 @@ const StudentDashboard = () => {
                 {notifications.map((notification) => (
                   <li
                     key={notification.id}
-                    className={`flex flex-col gap-2 rounded-lg border p-4 transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between ${
+                    className={`flex flex-col gap-2 rounded-lg border p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-500/10 sm:flex-row sm:items-center sm:justify-between ${
                       notification.read
-                        ? "border-neutral-200 bg-white"
-                        : "border-brand-200 bg-brand-50"
+                        ? "border-neutral-200/70 bg-white/60 backdrop-blur-md"
+                        : "border-brand-200 bg-brand-50/90 backdrop-blur-md"
                     }`}
                   >
                     <div className="flex items-start gap-2">

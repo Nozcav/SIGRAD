@@ -3,10 +3,13 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { QuestionField } from "../../components/student/QuestionField";
 import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
+import { SkeletonBlock } from "../../components/ui/SkeletonBlock";
 import { getApiErrorMessage } from "../../lib/api";
 import { getFormByCode } from "../../services/forms.service";
 import { submitResponse } from "../../services/responses.service";
 import { FormWithQuestions } from "../../types/form";
+import { celebrate } from "../../utils/celebrate";
+import { useToast } from "../../context/ToastContext";
 
 type AnswersState = Record<string, string | string[]>;
 
@@ -23,6 +26,7 @@ const isAnswerEmpty = (value: string | string[] | undefined): boolean => {
 const TakeForm = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [form, setForm] = useState<FormWithQuestions | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,6 +102,8 @@ const TakeForm = () => {
 
     try {
       const response = await submitResponse({ formId: form.id, answers: payloadAnswers });
+      celebrate();
+      showToast("Formulario enviado con exito", "success");
       navigate(`/student/responses/${response.id}`, { replace: true });
     } catch (err) {
       setSubmitError(getApiErrorMessage(err));
@@ -107,7 +113,12 @@ const TakeForm = () => {
   };
 
   if (isLoading) {
-    return <p className="text-sm text-neutral-500">Buscando formulario...</p>;
+    return (
+      <div className="mx-auto max-w-2xl space-y-6">
+        <SkeletonBlock lines={1} />
+        <SkeletonBlock lines={5} />
+      </div>
+    );
   }
 
   if (loadError || !form) {
@@ -137,7 +148,7 @@ const TakeForm = () => {
       {submitError && <Alert message={submitError} />}
 
       <form
-        className="space-y-6 rounded-2xl border border-neutral-200 bg-white p-6"
+        className="space-y-6 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl p-6"
         onSubmit={handleSubmit}
         noValidate
       >

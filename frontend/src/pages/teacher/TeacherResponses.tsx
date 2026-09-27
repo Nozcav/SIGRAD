@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { InboxIcon } from "../../components/icons/Icons";
 import { Alert } from "../../components/ui/Alert";
 import { Badge } from "../../components/ui/Badge";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { SkeletonList } from "../../components/ui/SkeletonList";
 import { getApiErrorMessage } from "../../lib/api";
 import { getResponsesForForm } from "../../services/forms.service";
 import { TeacherResponseSummary } from "../../types/response";
@@ -48,13 +51,14 @@ const TeacherResponses = () => {
       {error && <Alert message={error} />}
 
       {isLoading ? (
-        <p className="text-sm text-neutral-500">Cargando...</p>
+        <SkeletonList rows={4} />
       ) : responses.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-500">
-          Todavia no se han recibido respuestas para este formulario.
-        </div>
+        <EmptyState
+          icon={InboxIcon}
+          message="Todavia no se han recibido respuestas para este formulario."
+        />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl">
           <table className="min-w-full divide-y divide-neutral-200 text-sm">
             <thead className="bg-neutral-50">
               <tr>
@@ -68,7 +72,7 @@ const TeacherResponses = () => {
             </thead>
             <tbody className="divide-y divide-neutral-100">
               {responses.map((response) => (
-                <tr key={response.id} className="hover:bg-neutral-50">
+                <tr key={response.id} className="border-l-2 border-transparent transition-all duration-200 hover:border-l-brand-500 hover:bg-brand-50/50">
                   <td className="px-4 py-3 font-medium text-neutral-900">
                     {response.student.fullName}
                   </td>

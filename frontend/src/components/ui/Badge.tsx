@@ -7,25 +7,25 @@ interface BadgeProps {
 }
 
 const VARIANT_CLASSES: Record<BadgeVariant, string> = {
-  neutral: "bg-neutral-100 text-neutral-700",
-  green: "bg-green-100 text-green-700",
-  amber: "bg-amber-100 text-amber-700",
-  red: "bg-red-100 text-red-700",
-  brand: "bg-brand-100 text-brand-700",
+  neutral: "bg-neutral-600 text-white shadow-sm shadow-neutral-600/20",
+  green: "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30",
+  amber: "bg-amber-500 text-white shadow-sm shadow-amber-500/30",
+  red: "bg-red-500 text-white shadow-sm shadow-red-500/30",
+  brand: "bg-gradient-to-r from-brand-600 to-emerald-500 text-white shadow-sm shadow-brand-600/30",
 };
 
 const DOT_CLASSES: Record<BadgeVariant, string> = {
-  neutral: "bg-neutral-500",
-  green: "bg-green-500",
-  amber: "bg-amber-500",
-  red: "bg-red-500",
-  brand: "bg-brand-500",
+  neutral: "bg-white",
+  green: "bg-white",
+  amber: "bg-white",
+  red: "bg-white",
+  brand: "bg-white",
 };
 
 export const Badge = ({ label, variant = "neutral", pulse = false }: BadgeProps) => {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${VARIANT_CLASSES[variant]}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-transform duration-200 hover:scale-105 ${VARIANT_CLASSES[variant]}`}
     >
       {pulse && (
         <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${DOT_CLASSES[variant]}`} />

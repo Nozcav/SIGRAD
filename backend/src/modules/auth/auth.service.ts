@@ -3,8 +3,7 @@ import { prisma } from "../../config/db";
 import { AppError } from "../../utils/AppError";
 import { comparePassword, hashPassword } from "../../utils/hash";
 import { signToken } from "../../utils/jwt";
-import { env } from "../../config/env";
-import { ChangePasswordInput, LoginInput, RegisterInput, UpdateProfileInput } from "./auth.schemas";
+import { ChangePasswordInput, LoginInput, UpdateProfileInput } from "./auth.schemas";
 
 const sanitizeUser = (user: User) => ({
   id: user.id,
@@ -13,47 +12,9 @@ const sanitizeUser = (user: User) => ({
   documentId: user.documentId,
   role: user.role,
   active: user.active,
+  mustChangePassword: user.mustChangePassword,
   createdAt: user.createdAt,
 });
-
-export const registerUser = async (input: RegisterInput) => {
-  const normalizedEmail = input.email.toLowerCase();
-
-  if (
-    env.EMAIL_DOMAIN &&
-    !normalizedEmail.endsWith(`@${env.EMAIL_DOMAIN.toLowerCase()}`)
-  ) {
-    throw new AppError(
-      `Debes registrarte con tu correo institucional (@${env.EMAIL_DOMAIN})`,
-      400
-    );
-  }
-
-  const existing = await prisma.user.findFirst({
-    where: {
-      OR: [{ email: normalizedEmail }, { documentId: input.documentId }],
-    },
-  });
-
-  if (existing) {
-    throw new AppError("Ya existe un usuario registrado con ese correo o documento", 409);
-  }
-
-  const passwordHash = await hashPassword(input.password);
-
-  const user = await prisma.user.create({
-    data: {
-      fullName: input.fullName,
-      email: normalizedEmail,
-      documentId: input.documentId,
-      passwordHash,
-    },
-  });
-
-  const token = signToken(user.id);
-
-  return { user: sanitizeUser(user), token };
-};
 
 export const updateUserProfile = async (userId: string, input: UpdateProfileInput) => {
   const existing = await prisma.user.findFirst({
@@ -78,6 +39,9 @@ export const updateUserProfile = async (userId: string, input: UpdateProfileInpu
   return sanitizeUser(user);
 };
 
+// Tambien se usa para el cambio de contrasena obligatorio en el primer
+// inicio de sesion: en ambos casos, una vez cambiada, mustChangePassword
+// vuelve a false y el usuario queda con acceso normal a la plataforma.
 export const changeUserPassword = async (userId: string, input: ChangePasswordInput) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
@@ -95,7 +59,7 @@ export const changeUserPassword = async (userId: string, input: ChangePasswordIn
 
   await prisma.user.update({
     where: { id: userId },
-    data: { passwordHash },
+    data: { passwordHash, mustChangePassword: false },
   });
 };
 

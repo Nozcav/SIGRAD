@@ -9,7 +9,7 @@ interface QuestionFieldProps {
 }
 
 const baseInputClasses =
-  "w-full rounded-lg border px-3 py-2.5 text-sm text-neutral-900 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-emerald-500";
+  "w-full rounded-lg border-2 border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition-all duration-200 hover:border-neutral-300 focus:scale-[1.01] focus:border-transparent focus:ring-4 focus:ring-emerald-500/30";
 
 export const QuestionField = ({ question, value, onChange, error }: QuestionFieldProps) => {
   const borderClass = error ? "border-red-400" : "border-neutral-300";
