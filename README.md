@@ -1,5 +1,4 @@
 # SIGRAD
-
 SIGRAD es una plataforma para gestionar formularios académicos, respuestas, grupos de estudiantes, retroalimentación docente y calificaciones.
 
 ## Requisitos
