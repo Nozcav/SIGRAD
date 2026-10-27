@@ -9,6 +9,11 @@ export const requireRole = (allowedRoles: Role[]): RequestHandler => {
       return;
     }
 
+    if (req.user.mustChangePassword) {
+      next(new AppError("Debes cambiar tu contrasena temporal antes de continuar", 403));
+      return;
+    }
+
     if (!allowedRoles.includes(req.user.role)) {
       next(new AppError("No tienes permisos para realizar esta accion", 403));
       return;

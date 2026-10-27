@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../../middleware/requireAuth";
 import { requireRole } from "../../middleware/requireRole";
+import { requirePasswordChanged } from "../../middleware/requirePasswordChanged";
 import { validateBody } from "../../middleware/validate";
 import { create as createComment } from "../comments/comments.controller";
 import { createCommentSchema } from "../comments/comments.schemas";
@@ -13,7 +14,7 @@ router.use(requireAuth);
 
 router.post("/", requireRole(["STUDENT"]), validateBody(submitResponseSchema), submit);
 router.get("/my-responses", requireRole(["STUDENT"]), myResponses);
-router.get("/:id", detail);
+router.get("/:id", requirePasswordChanged, detail);
 
 router.post(
   "/:responseId/comments",

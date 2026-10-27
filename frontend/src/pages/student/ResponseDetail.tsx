@@ -17,6 +17,9 @@ const formatDateTime = (isoDate: string) =>
     minute: "2-digit",
   });
 
+const formatGrade = (grade: number) =>
+  new Intl.NumberFormat("es-CO", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(grade);
+
 const formatAnswerValue = (value: string): string => {
   try {
     const parsed = JSON.parse(value);
@@ -133,6 +136,66 @@ const ResponseDetail = () => {
           );
         })}
       </div>
+
+      {response.groupAssessment && (
+        <section className="space-y-4 rounded-2xl border border-brand-200 bg-white/80 p-6 shadow-sm backdrop-blur-xl">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-neutral-900">Calificación de grupo</h2>
+              <p className="mt-1 text-sm text-neutral-600">
+                Grupo: {response.groupAssessment.groupName}
+              </p>
+            </div>
+            {response.groupAssessment.finalGrade === null ? (
+              <span className="rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800">
+                Calificación en progreso
+              </span>
+            ) : (
+              <span className="rounded-xl bg-brand-50 px-4 py-2 text-lg font-bold text-brand-800">
+                {formatGrade(response.groupAssessment.finalGrade)} / 5,0
+              </span>
+            )}
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-neutral-200">
+            <table className="min-w-full divide-y divide-neutral-200 text-sm">
+              <thead className="bg-neutral-50">
+                <tr>
+                  <th scope="col" className="px-4 py-3 text-left font-semibold text-neutral-700">Criterio</th>
+                  <th scope="col" className="px-4 py-3 text-right font-semibold text-neutral-700">Porcentaje</th>
+                  <th scope="col" className="px-4 py-3 text-right font-semibold text-neutral-700">Nota</th>
+                  <th scope="col" className="px-4 py-3 text-right font-semibold text-neutral-700">Aporte a la nota</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100 bg-white">
+                {response.groupAssessment.criteria.map((criterion) => (
+                  <tr key={criterion.id}>
+                    <th scope="row" className="px-4 py-3 text-left font-medium text-neutral-800">
+                      {criterion.name}
+                    </th>
+                    <td className="px-4 py-3 text-right text-neutral-600">{criterion.weight}%</td>
+                    <td className="px-4 py-3 text-right font-medium text-neutral-800">
+                      {criterion.score === null ? "Pendiente" : `${formatGrade(criterion.score)} / 5,0`}
+                    </td>
+                    <td className="px-4 py-3 text-right text-neutral-600">
+                      {criterion.score === null
+                        ? "—"
+                        : `${formatGrade(criterion.score * (criterion.weight / 100))} puntos`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-neutral-50">
+                <tr>
+                  <th scope="row" colSpan={4} className="px-4 py-3 text-left text-xs font-medium text-neutral-600">
+                    La nota final es el promedio ponderado de los criterios y se completa cuando el docente termina de calificar.
+                  </th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </section>
+      )}
 
       <div className="space-y-4 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl p-6">
         <h2 className="text-lg font-semibold text-neutral-900">Retroalimentacion del docente</h2>

@@ -1,6 +1,7 @@
 import { FormStatus, Prisma, QuestionType, Role, ResponseStatus } from "@prisma/client";
 import { prisma } from "../../config/db";
 import { AppError } from "../../utils/AppError";
+import { calculateWeightedGradeTenths } from "../../utils/weightedGrade";
 import { SubmitResponseInput } from "./responses.schemas";
 
 const SELECTION_TYPES: QuestionType[] = [QuestionType.SINGLE_CHOICE, QuestionType.DROPDOWN];
@@ -262,7 +263,58 @@ export const getResponseDetail = async (
     });
   }
 
-  return response;
+  const groupMembership = isOwnerStudent
+    ? await prisma.studentGroupMember.findUnique({
+        where: { responseId: response.id },
+        select: {
+          group: {
+            select: {
+              name: true,
+              assessmentCriteria: {
+                orderBy: { order: "asc" },
+                include: {
+                  grades: {
+                    where: { responseId: response.id },
+                    select: { scoreTenths: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      })
+    : null;
+
+  const criteria = groupMembership?.group.assessmentCriteria.map((criterion) => ({
+    id: criterion.id,
+    name: criterion.name,
+    weight: criterion.weight,
+    score: criterion.grades[0] ? criterion.grades[0].scoreTenths / 10 : null,
+  })) ?? [];
+  const isAssessmentComplete = criteria.length > 0 && criteria.every((criterion) => criterion.score !== null);
+  const finalGradeTenths = isAssessmentComplete
+    ? calculateWeightedGradeTenths(
+        criteria.map(({ id, weight }) => ({ id, weight })),
+        new Map(
+          criteria.map((criterion) => [
+            criterion.id,
+            criterion.score === null ? null : Math.round(criterion.score * 10),
+          ])
+        )
+      )
+    : null;
+  const finalGrade = finalGradeTenths === null ? null : finalGradeTenths / 10;
+
+  return {
+    ...response,
+    groupAssessment: groupMembership && criteria.length > 0
+      ? {
+          groupName: groupMembership.group.name,
+          criteria,
+          finalGrade,
+        }
+      : null,
+  };
 };
 
 const RESPONSE_STATUS_LABELS: Record<ResponseStatus, string> = {

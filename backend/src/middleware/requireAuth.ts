@@ -35,6 +35,7 @@ export const requireAuth: RequestHandler = async (req, _res, next) => {
       documentId: user.documentId,
       role: user.role,
       active: user.active,
+      mustChangePassword: user.mustChangePassword,
     };
 
     next();

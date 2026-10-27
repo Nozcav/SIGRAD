@@ -16,6 +16,7 @@ import TakeForm from "./pages/student/TakeForm";
 import CreateForm from "./pages/teacher/CreateForm";
 import EditForm from "./pages/teacher/EditForm";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
+import TeacherGroups from "./pages/teacher/TeacherGroups";
 import TeacherResponseDetail from "./pages/teacher/TeacherResponseDetail";
 import TeacherResponses from "./pages/teacher/TeacherResponses";
 import Unauthorized from "./pages/Unauthorized";
@@ -61,6 +62,7 @@ const App = () => {
           <Route path="/teacher/forms/new" element={<CreateForm />} />
           <Route path="/teacher/forms/:id/edit" element={<EditForm />} />
           <Route path="/teacher/forms/:formId/responses" element={<TeacherResponses />} />
+          <Route path="/teacher/forms/:formId/groups" element={<TeacherGroups />} />
           <Route path="/teacher/responses/:id" element={<TeacherResponseDetail />} />
         </Route>
       </Route>

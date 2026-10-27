@@ -49,4 +49,14 @@ export interface ResponseDetail {
   form: FormWithQuestions;
   student: { id: string; fullName: string; email: string; documentId: string };
   comments: Comment[];
+  groupAssessment: {
+    groupName: string;
+    criteria: {
+      id: string;
+      name: string;
+      weight: number;
+      score: number | null;
+    }[];
+    finalGrade: number | null;
+  } | null;
 }

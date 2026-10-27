@@ -6,6 +6,7 @@ import { errorHandler } from "./middleware/errorHandler";
 import adminRoutes from "./modules/admin/admin.routes";
 import authRoutes from "./modules/auth/auth.routes";
 import formsRoutes from "./modules/forms/forms.routes";
+import groupsRoutes from "./modules/groups/groups.routes";
 import notificationsRoutes from "./modules/notifications/notifications.routes";
 import responsesRoutes from "./modules/responses/responses.routes";
 
@@ -22,6 +23,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/forms", formsRoutes);
+app.use("/api/groups", groupsRoutes);
 app.use("/api/responses", responsesRoutes);
 app.use("/api/notifications", notificationsRoutes);
 

@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^git fetch --no-tags https://github\\.com/Nozcav/SIGRAD\\.git main; if \\(\\$\\?\\) \\{ git log -1 --oneline FETCH_HEAD; git merge-base HEAD FETCH_HEAD \\}$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

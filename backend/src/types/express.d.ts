@@ -10,6 +10,7 @@ declare global {
         documentId: string;
         role: Role;
         active: boolean;
+        mustChangePassword: boolean;
       };
     }
   }

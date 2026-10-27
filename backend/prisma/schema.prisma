@@ -46,6 +46,7 @@ model User {
   createdAt          DateTime @default(now())
 
   formsOwned    Form[]         @relation("TeacherForms")
+  groupsCreated StudentGroup[] @relation("TeacherGroups")
   responses     Response[]
   comments      Comment[]
   notifications Notification[]
@@ -64,6 +65,7 @@ model Form {
 
   questions Question[]
   responses Response[]
+  groups    StudentGroup[]
 }
 
 model Question {
@@ -99,8 +101,62 @@ model Response {
   answers       Answer[]
   comments      Comment[]
   notifications Notification[]
-
+  groupMembership StudentGroupMember?
+  groupGrades     GroupCriterionGrade[]
   @@unique([formId, studentId])
+}
+
+
+model StudentGroup {
+  id        String   @id @default(uuid())
+  name      String
+  formId    String
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  teacherId String
+  teacher   User     @relation("TeacherGroups", fields: [teacherId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members             StudentGroupMember[]
+  assessmentCriteria  GroupAssessmentCriterion[]
+
+  @@index([formId])
+}
+
+model StudentGroupMember {
+  id         String       @id @default(uuid())
+  groupId    String
+  group      StudentGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  responseId String       @unique
+  response   Response     @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
+}
+
+model GroupAssessmentCriterion {
+  id        String       @id @default(uuid())
+  groupId   String
+  group     StudentGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name      String
+  weight    Int
+  order     Int
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  grades GroupCriterionGrade[]
+
+  @@index([groupId, order])
+}
+
+model GroupCriterionGrade {
+  id          String                  @id @default(uuid())
+  criterionId String
+  criterion   GroupAssessmentCriterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
+  responseId  String
+  response    Response                @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  scoreTenths Int
+  updatedAt   DateTime                @updatedAt
+
+  @@unique([criterionId, responseId])
 }
 
 model Answer {

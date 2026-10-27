@@ -4,12 +4,17 @@
   "private": true,
   "main": "dist/server.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-local.ps1",
+    "dev:server": "tsx watch src/server.ts",
+    "deploy": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-local.ps1 -Deploy",
     "build": "tsc",
+    "test": "tsx --test src/modules/groups/grading.test.ts",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "admin:reset-password": "tsx scripts/reset-admin-password.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",

@@ -5,3 +5,6 @@ dist/
 *.tsbuildinfo
 .DS_Store
 Thumbs.db
+/data/*.sqlite*
+/frontend/vite.config.js
+/frontend/vite.config.d.ts

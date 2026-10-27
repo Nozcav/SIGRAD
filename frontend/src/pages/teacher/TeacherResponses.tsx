@@ -45,7 +45,14 @@ const TeacherResponses = () => {
         <Link to="/teacher" className="text-sm font-medium text-brand-700 hover:text-brand-800">
           Volver a mis formularios
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold text-neutral-900">Respuestas recibidas</h1>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold text-neutral-900">Respuestas recibidas</h1>
+          {formId && (
+            <Link to={`/teacher/forms/${formId}/groups`} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700">
+              Crear y evaluar grupos
+            </Link>
+          )}
+        </div>
       </div>
 
       {error && <Alert message={error} />}

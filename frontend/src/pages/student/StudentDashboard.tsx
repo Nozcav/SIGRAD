@@ -149,6 +149,30 @@ const StudentDashboard = () => {
     })();
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+    const refreshNotifications = async () => {
+      try {
+        const data = await getNotifications();
+        if (isMounted) {
+          setNotifications(data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(getApiErrorMessage(err));
+        }
+      }
+    };
+
+    const intervalId = window.setInterval(() => void refreshNotifications(), 30_000);
+    window.addEventListener("focus", refreshNotifications);
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refreshNotifications);
+    };
+  }, []);
+
   const handleMarkAsRead = async (notificationId: string) => {
     setMarkingId(notificationId);
 
@@ -248,6 +272,14 @@ const StudentDashboard = () => {
                         <p className="mt-1 text-xs text-neutral-500">
                           {formatDateTime(notification.createdAt)}
                         </p>
+                        {notification.responseId && (
+                          <Link
+                            to={`/student/responses/${notification.responseId}`}
+                            className="mt-2 inline-block text-xs font-semibold text-brand-700 hover:text-brand-800"
+                          >
+                            Ver respuesta y calificación
+                          </Link>
+                        )}
                       </div>
                     </div>
                     {!notification.read && (
