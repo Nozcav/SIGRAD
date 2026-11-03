@@ -14,6 +14,10 @@ export const updateStatusSchema = z.object({
   active: z.boolean(),
 });
 
+export const userIdParamsSchema = z.object({
+  id: z.string().uuid("Identificador de usuario invalido"),
+});
+
 // El panel de administracion solo puede crear cuentas de estudiante o
 // docente. El rol de administrador se asigna fuera del sistema (seed/BD)
 // para evitar escalar privilegios por un formulario.
