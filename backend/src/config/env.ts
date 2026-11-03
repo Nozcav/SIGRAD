@@ -10,7 +10,10 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(16, "JWT_SECRET debe tener al menos 16 caracteres"),
   JWT_EXPIRES_IN_DAYS: z.coerce.number().default(7),
   CLIENT_URL: z.string().min(1).default("http://localhost:5173"),
-  EMAIL_DOMAIN: z.string().optional(),
+  EMAIL_DOMAIN: z
+    .string()
+    .default("fet.edu.co")
+    .transform((domain) => domain.trim() || "fet.edu.co"),
 });
 
 const parsed = envSchema.safeParse(process.env);

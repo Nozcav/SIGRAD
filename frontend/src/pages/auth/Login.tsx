@@ -19,6 +19,11 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleForgotPassword = () => {
+    window.alert(
+      "Por favor acércate a la oficina de Registro y Control para que un administrador restaure tu contraseña."
+    );
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -73,6 +78,14 @@ const Login = () => {
             Iniciar sesion
           </Button>
         </form>
+
+        <button
+          type="button"
+          onClick={handleForgotPassword}
+          className="w-full text-center text-sm font-medium text-brand-700 hover:text-brand-800 hover:underline"
+        >
+          ¿Olvidaste tu contraseña?
+        </button>
 
         <p className="text-center text-sm text-neutral-500">
           Tu cuenta es creada por el administrador de SIGRAD, igual que las credenciales

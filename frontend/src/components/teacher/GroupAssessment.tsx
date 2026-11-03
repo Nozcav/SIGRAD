@@ -91,6 +91,18 @@ const GroupAssessment = ({ group, onUpdated }: GroupAssessmentProps) => {
     );
   };
 
+  const handleEditRubric = () => {
+    setError(null);
+    setCriteriaDraft(
+      criteria.map((criterion) => ({
+        key: criterion.id,
+        name: criterion.name,
+        weight: criterion.weight,
+      }))
+    );
+    setIsConfiguring(true);
+  };
+
   const handleSaveRubric = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
@@ -136,16 +148,11 @@ const GroupAssessment = ({ group, onUpdated }: GroupAssessmentProps) => {
             Define criterios con porcentajes y califica a cada integrante de 0,0 a 5,0.
           </p>
         </div>
-        {criteria.length > 0 && !isConfiguring && (
+        {criteria.length > 0 && !isConfiguring && !hasSavedGrades && (
           <Button
             type="button"
             className="w-auto bg-neutral-100 text-neutral-700 shadow-none ring-0 hover:bg-neutral-200 hover:shadow-none"
-            disabled={hasSavedGrades}
-            title={hasSavedGrades ? "La rúbrica no se puede cambiar después de empezar a calificar." : undefined}
-            onClick={() => {
-              setError(null);
-              setIsConfiguring(true);
-            }}
+            onClick={handleEditRubric}
           >
             Editar criterios
           </Button>

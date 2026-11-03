@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { documentIdSchema, fullNameSchema } from "../../utils/validationSchemas";
 
 export const loginSchema = z.object({
   email: z.string().trim().email("Correo invalido"),
@@ -6,8 +7,8 @@ export const loginSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
-  fullName: z.string().trim().min(3, "El nombre debe tener al menos 3 caracteres").max(120),
-  documentId: z.string().trim().min(5, "Documento invalido").max(30),
+  fullName: fullNameSchema,
+  documentId: documentIdSchema,
 });
 
 export const changePasswordSchema = z.object({

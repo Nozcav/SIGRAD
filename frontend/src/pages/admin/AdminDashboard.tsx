@@ -72,6 +72,11 @@ const AdminDashboard = () => {
 
   const handleToggleRole = async (targetUser: AuthUser) => {
     const nextRole: Role = targetUser.role === "STUDENT" ? "TEACHER" : "STUDENT";
+    const nextRoleLabel = nextRole === "TEACHER" ? "docente" : "estudiante";
+    if (!window.confirm(`¿Confirmas promover a ${targetUser.fullName} a ${nextRoleLabel}?`)) {
+      return;
+    }
+
     setUpdatingId(targetUser.id);
     setError(null);
 
@@ -86,6 +91,13 @@ const AdminDashboard = () => {
   };
 
   const handleToggleStatus = async (targetUser: AuthUser) => {
+    if (
+      targetUser.active &&
+      !window.confirm(`¿Confirmas desactivar al usuario ${targetUser.fullName}?`)
+    ) {
+      return;
+    }
+
     setUpdatingId(targetUser.id);
     setError(null);
 
@@ -199,7 +211,7 @@ const AdminDashboard = () => {
                             title={isSelf ? "No puedes modificar tu propio rol" : undefined}
                             className="rounded-lg border-2 border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 hover:shadow-md disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60"
                           >
-                            {user.role === "STUDENT" ? "Promover a docente" : "Volver a estudiante"}
+                            {user.role === "STUDENT" ? "Promover a docente" : "Promover a estudiante"}
                           </button>
                         )}
                         <button

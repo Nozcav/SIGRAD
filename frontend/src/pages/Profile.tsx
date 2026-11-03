@@ -16,6 +16,7 @@ const formatDate = (isoDate: string) =>
 const Profile = () => {
   const { user, refreshUser } = useAuth();
   const { showToast } = useToast();
+  const canEditPersonalInfo = user?.role === "ADMIN";
 
   const [fullName, setFullName] = useState(user?.fullName ?? "");
   const [documentId, setDocumentId] = useState(user?.documentId ?? "");
@@ -117,14 +118,22 @@ const Profile = () => {
             label="Nombre completo"
             name="fullName"
             value={fullName}
-            onChange={(event) => setFullName(event.target.value)}
+            onChange={(event) => setFullName(event.target.value.replace(/[^\p{L} ]/gu, ""))}
+            disabled={!canEditPersonalInfo}
+            title={!canEditPersonalInfo ? "Solo un administrador puede modificar este campo" : undefined}
             required
           />
           <Input
             label="Documento de identidad"
             name="documentId"
+            inputMode="numeric"
+            pattern="[0-9]{6,10}"
+            minLength={6}
+            maxLength={10}
             value={documentId}
-            onChange={(event) => setDocumentId(event.target.value)}
+            onChange={(event) => setDocumentId(event.target.value.replace(/\D/g, "").slice(0, 10))}
+            disabled={!canEditPersonalInfo}
+            title={!canEditPersonalInfo ? "Solo un administrador puede modificar este campo" : undefined}
             required
           />
           <Input
@@ -134,9 +143,11 @@ const Profile = () => {
             disabled
             title="El correo institucional no se puede modificar"
           />
-          <Button type="submit" isLoading={isSavingProfile} className="sm:w-auto sm:px-8">
-            Guardar cambios
-          </Button>
+          {canEditPersonalInfo && (
+            <Button type="submit" isLoading={isSavingProfile} className="sm:w-auto sm:px-8">
+              Guardar cambios
+            </Button>
+          )}
         </form>
       </div>
 

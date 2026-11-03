@@ -157,7 +157,7 @@ export const CreateUserModal = ({ onClose, onCreated }: CreateUserModalProps) =>
           label="Nombre completo"
           name="fullName"
           value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
+          onChange={(event) => setFullName(event.target.value.replace(/[^\p{L} ]/gu, ""))}
           required
         />
         <Input
@@ -166,13 +166,18 @@ export const CreateUserModal = ({ onClose, onCreated }: CreateUserModalProps) =>
           name="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
+          title="Usa tu correo institucional"
           required
         />
         <Input
           label="Documento de identidad"
           name="documentId"
+          inputMode="numeric"
+          pattern="[0-9]{6,10}"
+          minLength={6}
+          maxLength={10}
           value={documentId}
-          onChange={(event) => setDocumentId(event.target.value)}
+          onChange={(event) => setDocumentId(event.target.value.replace(/\D/g, "").slice(0, 10))}
           required
         />
 

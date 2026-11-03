@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../../middleware/requireAuth";
 import { requirePasswordChanged } from "../../middleware/requirePasswordChanged";
+import { requireRole } from "../../middleware/requireRole";
 import { validateBody } from "../../middleware/validate";
 import { changePassword, login, logout, me, updateProfile } from "./auth.controller";
 import { changePasswordSchema, loginSchema, updateProfileSchema } from "./auth.schemas";
@@ -14,6 +15,7 @@ router.patch(
   "/profile",
   requireAuth,
   requirePasswordChanged,
+  requireRole(["ADMIN"]),
   validateBody(updateProfileSchema),
   updateProfile
 );
