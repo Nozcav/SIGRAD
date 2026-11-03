@@ -4,6 +4,7 @@ import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import { getApiErrorMessage } from "../../lib/api";
 
 interface LocationState {
@@ -12,6 +13,7 @@ interface LocationState {
 
 const Login = () => {
   const { login } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,8 +22,9 @@ const Login = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const handleForgotPassword = () => {
-    window.alert(
-      "Por favor acércate a la oficina de Registro y Control para que un administrador restaure tu contraseña."
+    showToast(
+      "Por favor acércate a la oficina de Registro y Control para que un administrador restaure tu contraseña.",
+      "info"
     );
   };
 

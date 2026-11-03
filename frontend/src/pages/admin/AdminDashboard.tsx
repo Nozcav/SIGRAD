@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { CreateUserModal } from "../../components/admin/CreateUserModal";
+import { ResetPasswordModal } from "../../components/admin/ResetPasswordModal";
 import { UsersIcon } from "../../components/icons/Icons";
 import { Alert } from "../../components/ui/Alert";
 import { Badge } from "../../components/ui/Badge";
@@ -34,6 +35,7 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [userToResetPassword, setUserToResetPassword] = useState<AuthUser | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -141,6 +143,12 @@ const AdminDashboard = () => {
           onCreated={handleUserCreated}
         />
       )}
+      {userToResetPassword && (
+        <ResetPasswordModal
+          user={userToResetPassword}
+          onClose={() => setUserToResetPassword(null)}
+        />
+      )}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <input
@@ -212,6 +220,16 @@ const AdminDashboard = () => {
                             className="rounded-lg border-2 border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 hover:shadow-md disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             {user.role === "STUDENT" ? "Promover a docente" : "Promover a estudiante"}
+                          </button>
+                        )}
+                        {!isSelf && (
+                          <button
+                            type="button"
+                            onClick={() => setUserToResetPassword(user)}
+                            disabled={isUpdating}
+                            className="rounded-lg border-2 border-brand-200 px-3 py-1.5 text-xs font-semibold text-brand-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-400 hover:bg-brand-50 hover:shadow-md disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            Restablecer contraseña
                           </button>
                         )}
                         <button

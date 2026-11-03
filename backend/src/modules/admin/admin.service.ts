@@ -80,6 +80,27 @@ export const updateUserStatus = async (adminId: string, userId: string, active: 
   return sanitizeUser(updated);
 };
 
+export const resetUserPassword = async (adminId: string, userId: string) => {
+  if (userId === adminId) {
+    throw new AppError("No puedes restablecer tu propia contrasena desde este panel", 400);
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new AppError("Usuario no encontrado", 404);
+  }
+
+  const temporaryPassword = generateTemporaryPassword();
+  const passwordHash = await hashPassword(temporaryPassword);
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash, mustChangePassword: true },
+  });
+
+  return { temporaryPassword };
+};
+
 // No existe registro publico: el administrador es quien da de alta cada
 // cuenta (replica el modelo institucional donde la universidad entrega las
 // credenciales). Si el admin no especifica una contrasena, el sistema genera

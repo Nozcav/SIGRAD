@@ -18,6 +18,13 @@ export const updateUserStatus = async (userId: string, active: boolean): Promise
   return data.user;
 };
 
+export const resetUserPassword = async (userId: string): Promise<{ temporaryPassword: string }> => {
+  const { data } = await api.post<{ temporaryPassword: string }>(
+    `/admin/users/${userId}/reset-password`
+  );
+  return data;
+};
+
 export const createUser = async (payload: CreateUserPayload): Promise<CreateUserResult> => {
   const { data } = await api.post<CreateUserResult>("/admin/users", payload);
   return data;

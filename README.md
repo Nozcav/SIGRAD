@@ -50,7 +50,7 @@ Para desplegar, configura primero `backend/.env` para el entorno de producción 
 
 ## Flujos principales
 
-- El administrador crea cuentas institucionales; cada cuenta nueva debe cambiar la contraseña temporal antes de usar las funciones del sistema.
+- El administrador crea cuentas institucionales y puede restablecer las contraseñas desde el panel de usuarios; las contraseñas temporales se muestran una sola vez y deben cambiarse antes de usar las funciones del sistema.
 - El docente crea formularios, comparte su código, revisa respuestas y organiza en grupos a los estudiantes que ya respondieron.
 - Cada grupo puede tener una rúbrica de hasta 20 criterios. Los porcentajes deben sumar exactamente 100%; la nota de cada criterio va de `0,0` a `5,0` en pasos de `0,1`.
 - SIGRAD calcula la nota ponderada sobre `5,0`. Al completarse o cambiar la nota final, el estudiante recibe una notificación en el panel y puede consultar el detalle en su respuesta.
